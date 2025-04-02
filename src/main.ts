@@ -1,5 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
 import "@babylonjs/inspector";
+import HavokPhysics from "@babylonjs/havok";
 
 import "./main.css";
 
@@ -9,6 +10,22 @@ document.body.appendChild(canvas);
 
 const engine = new BABYLON.Engine(canvas, true);
 const scene = new BABYLON.Scene(engine);
+
+function enablePhysics() {
+  return HavokPhysics().then((Havok) => {
+    const havok = new BABYLON.HavokPlugin(true, Havok);
+
+    scene.enablePhysics(new BABYLON.Vector3(0, -9.8, 0), havok);
+  });
+}
+
+function loadMeshAsync(path: string, scene: BABYLON.Scene) {
+  return new Promise((resolve) => {
+    BABYLON.SceneLoader.ImportMeshAsync("", path, "", scene).then((result) => {
+      resolve(result);
+    });
+  });
+}
 
 scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
@@ -38,26 +55,27 @@ const hemisphericLight = new BABYLON.HemisphericLight(
 );
 hemisphericLight.intensity = 0.5;
 
-const standardMaterial = new BABYLON.StandardMaterial("material", scene);
+(async () => {
+  await enablePhysics();
 
-const capsule = BABYLON.MeshBuilder.CreateCapsule(
-  "capsule",
-  { height: 1.8, radius: 0.25, tessellation: 32 },
-  scene
-);
+  await loadMeshAsync("./gltf/greybox1x8.glb", scene);
 
-capsule.position = new BABYLON.Vector3(0, 0.5 + 1.8 / 2, 0);
+  console.log(scene.meshes);
 
-const capsuleMaterial = standardMaterial;
+  const capsule = BABYLON.MeshBuilder.CreateCapsule(
+    "capsule",
+    { height: 1.8, radius: 0.25, tessellation: 32 },
+    scene
+  );
 
-capsule.material = capsuleMaterial;
+  const characterPosition = new BABYLON.Vector3(0, 0.5 + 1.8 / 2, 0);
 
-BABYLON.SceneLoader.ImportMeshAsync(
-  "",
-  "./gltf/greybox1x8.glb",
-  "",
-  scene
-).then((result) => {});
+  let characterController = new BABYLON.PhysicsCharacterController(
+    characterPosition,
+    { capsuleHeight: 1.8, capsuleRadius: 0.25 },
+    scene
+  );
+})();
 
 engine.runRenderLoop(() => {
   scene.render();

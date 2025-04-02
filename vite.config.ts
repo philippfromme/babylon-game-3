@@ -10,4 +10,10 @@ export default defineConfig({
       },
     },
   ],
+  server: {
+    fs: {
+      allow: ["../.."],
+    },
+  },
+  optimizeDeps: { exclude: ["@babylonjs/havok"] },
 });
