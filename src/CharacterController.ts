@@ -23,6 +23,7 @@ type CharacterControllerOptions = {
   onGroundSpeed?: number;
   jumpHeight?: number;
   gravity?: BABYLON.Vector3;
+  maxSlope?: number;
 };
 
 const defaultOptions: Required<CharacterControllerOptions> = {
@@ -33,6 +34,7 @@ const defaultOptions: Required<CharacterControllerOptions> = {
   onGroundSpeed: 5.0,
   jumpHeight: 1,
   gravity: new BABYLON.Vector3(0, -9.81, 0),
+  maxSlope: Math.PI / 6, // 30 degrees
 };
 
 export default class CharacterController extends EventEmitter<CharacterControllerEvents> {
@@ -286,5 +288,9 @@ export default class CharacterController extends EventEmitter<CharacterControlle
     }
 
     return BABYLON.Vector3.Zero();
+  }
+
+  getPosition(): BABYLON.Vector3 {
+    return this.characterController.getPosition();
   }
 }
