@@ -42,7 +42,7 @@ const camera = new BABYLON.ArcRotateCamera(
   scene
 );
 
-camera.setPosition(new BABYLON.Vector3(20, 20, 20));
+camera.setPosition(new BABYLON.Vector3(10, 10, 10));
 camera.setTarget(BABYLON.Vector3.Zero());
 camera.attachControl(canvas, true);
 
@@ -92,6 +92,13 @@ async function init() {
 
   const characterController = new CharacterController(scene, mouse, keyboard, {
     position: new BABYLON.Vector3(0, 10, 0),
+  });
+
+  scene.registerBeforeRender(() => {
+    const position = characterController.getPosition();
+
+    camera.setTarget(position);
+    camera.setPosition(position.add(new BABYLON.Vector3(0, 10, -10)));
   });
 }
 
