@@ -2,6 +2,10 @@ import * as BABYLON from "@babylonjs/core";
 import "@babylonjs/inspector";
 import HavokPhysics from "@babylonjs/havok";
 
+import Mouse from "./Mouse";
+import Keyboard from "./Keyboard";
+import CharacterController from "./CharacterController";
+
 import "./main.css";
 
 const canvas = document.createElement("canvas");
@@ -42,6 +46,12 @@ camera.setPosition(new BABYLON.Vector3(20, 20, 20));
 camera.setTarget(BABYLON.Vector3.Zero());
 camera.attachControl(canvas, true);
 
+// deactivate moveing the camera with arrow keys
+camera.keysUp = [];
+camera.keysDown = [];
+camera.keysLeft = [];
+camera.keysRight = [];
+
 const light = new BABYLON.DirectionalLight(
   "light",
   new BABYLON.Vector3(1, -1, 1),
@@ -55,27 +65,37 @@ const hemisphericLight = new BABYLON.HemisphericLight(
 );
 hemisphericLight.intensity = 0.5;
 
-(async () => {
+async function init() {
+  const mouse = new Mouse(scene);
+  const keyboard = new Keyboard(scene);
+
   await enablePhysics();
 
-  await loadMeshAsync("./gltf/greybox1x8.glb", scene);
+  await loadMeshAsync("./gltf/greybox.glb", scene);
 
   console.log(scene.meshes);
 
-  const capsule = BABYLON.MeshBuilder.CreateCapsule(
-    "capsule",
-    { height: 1.8, radius: 0.25, tessellation: 32 },
-    scene
-  );
+  scene.meshes.forEach((mesh) => {
+    if (
+      mesh.name.startsWith("Box") ||
+      mesh.name.startsWith("Plane") ||
+      mesh.name.startsWith("Ramp")
+    ) {
+      const aggregate = new BABYLON.PhysicsAggregate(
+        mesh,
+        BABYLON.PhysicsShapeType.MESH,
+        { mass: 0 },
+        scene
+      );
+    }
+  });
 
-  const characterPosition = new BABYLON.Vector3(0, 0.5 + 1.8 / 2, 0);
+  const characterController = new CharacterController(scene, mouse, keyboard, {
+    position: new BABYLON.Vector3(0, 10, 0),
+  });
+}
 
-  let characterController = new BABYLON.PhysicsCharacterController(
-    characterPosition,
-    { capsuleHeight: 1.8, capsuleRadius: 0.25 },
-    scene
-  );
-})();
+init();
 
 engine.runRenderLoop(() => {
   scene.render();
